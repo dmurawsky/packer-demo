@@ -1,0 +1,62 @@
+{
+  "variables":{
+    "hvm_amiid":"",
+    "shellUser":"",
+    "build":"",
+    "ami_profile":"",
+    "date":"",
+    "vpc_id":"",
+    "subnet_id":"",
+    "region":"",
+    "instance_type":""
+  },
+"builders":[
+{
+  "name":"hvm_builder",
+  "ami_virtualization_type":"hvm",
+  "type": "amazon-ebs",
+  "source_ami": "{{user `hvm_amiid`}}",
+  "ssh_keypair_name": "tlewis_labs_kp",
+  "ssh_private_key_file": "/Users/timlewis/data/dev/kp/tlewis_labs_kp.pem",
+  "ssh_username": "{{user `shellUser`}}",
+  "associate_public_ip_address": "true",
+  "vpc_id":"{{user `vpc_id`}}",
+  "subnet_id":"{{user `subnet_id`}}",
+  "instance_type": "{{user `instance_type`}}",
+  "ssh_pty": "true",
+  "ssh_timeout":"5m",
+  "ami_name": "{{user `ami_profile`}}_build-{{user `build`}}_Source-{{user `hvm_amiid`}}_Built-{{user `date`}}",
+  "region":"{{user `region`}}",
+  "tags": {
+    "Name":"{{user `ami_profile`}}-{{user `build`}}",
+    "source":"{{user `hvm_amiid`}}",
+    "virtualization_type":"hvm",
+    "build":"{{user `build`}}",
+    "profile":"{{user `ami_profile`}}",
+    "creator":"packer",
+    "creation_time":"{{user `date`}}"
+  }
+}
+],
+"provisioners":[
+  {
+    "type":"shell",
+    "inline":[
+    "sleep 90"
+  ]
+  },
+  {
+    "type":"file",
+    "source":"bin/install_pip.sh",
+    "destination":"/tmp/install_pip.sh"
+  },
+  {
+    "type":"shell",
+    "inline_shebang":"/bin/bash",
+    "execute_command": "/usr/bin/env -i {{.Vars}} /bin/bash -i {{.Path}}",
+    "inline":[
+      "sudo chmod 777 /tmp/install_pip.sh",
+      "/tmp/install_pip.sh"
+    ]
+  }  ]
+}
